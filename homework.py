@@ -45,13 +45,11 @@ logger.addHandler(handler)
 
 
 def send_message(bot, message):
-    """
-    Функция отправляет сообщение в Telegram чат,
+    """Функция отправляет сообщение в Telegram чат,
     определяемый переменной окружения TELEGRAM_CHAT_ID.
     Принимает на вход два параметра:
     экземпляр класса Bot и строку с текстом сообщения.
     """
-
     try:
         bot.send_message(TELEGRAM_CHAT_ID, message)
         logger.debug(f'Сообщение "{message}" успешно отправлено')
@@ -62,13 +60,11 @@ def send_message(bot, message):
 
 
 def get_api_answer(current_timestamp):
-    """
-    Функция делает запрос к единственному эндпоинту API-сервиса.
+    """Функция делает запрос к единственному эндпоинту API-сервиса.
     В качестве параметра в функцию передается временная метка.
     В случае успешного запроса должна вернуть ответ API,
     приведя его из формата JSON к типам данных Python.
     """
-
     timestamp = current_timestamp or int(time.time())
     params = {'from_date': timestamp}
     try:
@@ -87,12 +83,10 @@ def get_api_answer(current_timestamp):
 
 
 def check_response(response):
-    """
-    Функция проверяет ответ API на соответствие документации.
+    """Функция проверяет ответ API на соответствие документации.
     В качестве параметра функция получает ответ API,
     приведенный к типам данных Python.
     """
-
     logger.debug('Проверка ответа сервиса на корректность.')
 
     if (isinstance(response, dict)
@@ -108,13 +102,11 @@ def check_response(response):
 
 
 def parse_status(homework):
-    """
-    Извлекает из информации о конкретной домашней работе статус этой работы.
+    """Извлекает из информации о конкретной домашней работе статус этой работы.
     В качестве параметра получает только один элемент из списка домашних работ.
     В случае успеха, возвращает подготовленную для отправки в Telegram строку,
     содержащую один из вердиктов словаря HOMEWORK_VERDICTS.
     """
-
     homework_name = homework.get('homework_name')
     homework_status = homework.get('status')
 
@@ -135,7 +127,6 @@ def check_tokens():
     Проверяет доступность переменных окружения,
     необходимых для работы программы.
     """
-
     available = True
     params = [PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID]
     if not all(params):
@@ -147,9 +138,7 @@ def check_tokens():
 
 
 def handle_error(bot, message):
-    """
-    Отправляет сообщение в телеграм, если оно еще не передавалось.
-    """
+    """Отправляет сообщение в телеграм, если оно еще не передавалось."""
     if type(message) == TelegramAPIException:
         return
 
