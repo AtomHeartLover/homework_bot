@@ -123,8 +123,7 @@ def parse_status(homework):
 
 
 def check_tokens():
-    """Проверяет доступность переменных окружения.
-    """
+    """Проверяет доступность переменных окружения."""
     available = True
     params = [PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID]
     if not all(params):
