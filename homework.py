@@ -1,18 +1,17 @@
 import logging
 import os
 import time
+from http import HTTPStatus
+from logging import StreamHandler
+from sys import stdout
+
 import requests
 import telegram
-
-from logging import StreamHandler
-from requests import HTTPError
 from dotenv import load_dotenv
-from sys import stdout
-from http import HTTPStatus
+from requests import HTTPError
 
-from exceptions import (IncorrectResponseException, UnknownStatusException,
-                        TelegramAPIException, HomeworkMissingException)
-
+from exceptions import (HomeworkMissingException, IncorrectResponseException,
+                        TelegramAPIException, UnknownStatusException)
 
 load_dotenv()
 
@@ -124,20 +123,18 @@ def parse_status(homework):
 
 def check_tokens():
     """Проверяет доступность переменных окружения."""
-    available = True
     params = [PRACTICUM_TOKEN, TELEGRAM_TOKEN, TELEGRAM_CHAT_ID]
-    if not all(params):
-        available = False
+    available = all(params)
+    if not available:
         logger.critical('Отсутствует обязательная переменная окружения,'
-                        'Программа принудительно остановлена.'
-                        )
-    return available
+                        'Программа принудительно остановлена.')
+    return True
 
 
 def handle_error(bot, message):
     """Отправляет сообщение в телеграм, если оно еще не передавалось."""
     if type(message) == TelegramAPIException:
-        return
+        logger.exception('Telegram API не вернул ответ.')
 
     message = str(message)
     error = errors_occured.get(message)
@@ -157,24 +154,23 @@ def main():
     cache_cleared = current_timestamp
 
     while True:
-        try:
-            if int(time.time()) - cache_cleared > ERROR_CACHE_LIFETIME:
-                errors_occured.clear()
+        if int(time.time()) - cache_cleared > ERROR_CACHE_LIFETIME:
+            errors_occured.clear()
+            try:
+                response = get_api_answer(current_timestamp)
+                homeworks = check_response(response)
 
-            response = get_api_answer(current_timestamp)
-            homeworks = check_response(response)
+                if homeworks:
+                    message = parse_status(homeworks[0])
+                    send_message(bot, message)
+                else:
+                    logger.debug('Нет новых статусов')
 
-            if homeworks:
-                message = parse_status(homeworks[0])
-                send_message(bot, message)
-            else:
-                logger.debug('Нет новых статусов')
-
-            current_timestamp = int(time.time())
-        except Exception as error:
-            handle_error(bot, error)
-        finally:
-            time.sleep(RETRY_PERIOD)
+                current_timestamp = int(time.time())
+            except Exception as error:
+                handle_error(bot, error)
+            finally:
+                time.sleep(RETRY_PERIOD)
 
 
 if __name__ == '__main__':
