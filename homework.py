@@ -159,13 +159,11 @@ def main():
             try:
                 response = get_api_answer(current_timestamp)
                 homeworks = check_response(response)
-
                 if homeworks:
                     message = parse_status(homeworks[0])
                     send_message(bot, message)
                 else:
                     logger.debug('Нет новых статусов')
-
                 current_timestamp = int(time.time())
             except Exception as error:
                 handle_error(bot, error)
