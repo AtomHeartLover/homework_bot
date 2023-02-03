@@ -20,6 +20,7 @@ ENDPOINT = 'https://practicum.yandex.ru/api/user_api/homework_statuses/'
 PRACTICUM_TOKEN = os.getenv('PRACTICUM_TOKEN')
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID')
+
 RETRY_PERIOD: int = 600
 ERROR_CACHE_LIFETIME: int = 60 * 60 * 24
 
@@ -128,7 +129,6 @@ def check_tokens():
     if not available:
         logger.critical('Отсутствует обязательная переменная окружения,'
                         'Программа принудительно остановлена.')
-        return False
     return True
 
 
@@ -153,10 +153,11 @@ def main():
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
     current_timestamp = int(time.time())
     cache_cleared = current_timestamp
+    send_message(TELEGRAM_CHAT_ID, "hello")
+    if int(time.time()) - cache_cleared > ERROR_CACHE_LIFETIME:
+        errors_occured.clear()
 
     while True:
-        if int(time.time()) - cache_cleared > ERROR_CACHE_LIFETIME:
-            errors_occured.clear()
         try:
             response = get_api_answer(current_timestamp)
             homeworks = check_response(response)
